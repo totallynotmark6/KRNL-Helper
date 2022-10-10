@@ -99,6 +99,13 @@ def weathercode_to_string(code):
         return "Thunderstorm with heavy hail"
 
 
+def get_time_until_end():
+    now = datetime.now()
+    end = datetime(now.year, now.month, now.day, 22, 0, 0)
+    return end - now
+
+
 def cli():
     print(get_weather())
     print(get_current_song())
+    print(get_time_until_end())
