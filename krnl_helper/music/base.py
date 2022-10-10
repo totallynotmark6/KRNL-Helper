@@ -8,22 +8,22 @@ class Music:
     def register_app(cls, app):
         if isinstance(app.system, str):
             if isinstance(app.name, str):
-                cls._apps[app.name + app.system] = app
+                cls._apps[app.name + "/" + app.system] = app
             elif isinstance(app.name, list):
                 for name in app.name:
-                    cls._apps[name + app.system] = app
+                    cls._apps[name + "/" + app.system] = app
         elif isinstance(app.system, list):
             if isinstance(app.name, str):
                 for system in app.system:
-                    cls._apps[app.name + system] = app
+                    cls._apps[app.name + "/" + system] = app
             elif isinstance(app.name, list):
                 for name in app.name:
                     for system in app.system:
-                        cls._apps[name + system] = app
+                        cls._apps[name + "/" + system] = app
 
     @classmethod
     def get_app(cls, app):
-        return cls._apps[app + platform.system()]
+        return cls._apps[app + "/" + platform.system()]
 
 
 class MusicApp:

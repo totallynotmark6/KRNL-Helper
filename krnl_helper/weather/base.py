@@ -4,10 +4,10 @@ class Weather:
     @classmethod
     def register_service(cls, service):
         if isinstance(service.name, str):
-            cls._apps[service.name] = service
-        elif isinstance(app.name, list):
+            cls._services[service.name] = service
+        elif isinstance(service.name, list):
             for name in service.name:
-                cls._apps[name] = service
+                cls._services[name] = service
 
     @classmethod
     def get_service(cls, service):
