@@ -1,5 +1,6 @@
-import requests
 from datetime import datetime
+
+import requests
 
 
 def get_weather():
@@ -23,9 +24,7 @@ def get_weather():
 
     # okay, so we have the data, now we need to parse it.
     # for now, we'll just get the current hour's data
-    current_hr_index = data["hourly"]["time"].index(
-        datetime.now().strftime("%Y-%m-%dT%H:00")
-    )
+    current_hr_index = data["hourly"]["time"].index(datetime.now().strftime("%Y-%m-%dT%H:00"))
     return "Current weather: {}°F, feels like {}°F, and I think it's {}.".format(
         data["hourly"]["temperature_2m"][current_hr_index],
         data["hourly"]["apparent_temperature"][current_hr_index],
@@ -34,10 +33,10 @@ def get_weather():
 
 
 def get_current_song():
-    resp = requests.get('https://public.radio.co/stations/s209f09ff1/status')
+    resp = requests.get("https://public.radio.co/stations/s209f09ff1/status")
     data = resp.json()
     # there's some more useful data here, but this works for now
-    return data['current_track']['title']
+    return data["current_track"]["title"]
 
 
 def weathercode_to_string(code):
@@ -97,6 +96,8 @@ def weathercode_to_string(code):
         return "Thunderstorm with slight hail"
     elif code == 99:  # central europe only
         return "Thunderstorm with heavy hail"
+    else:
+        return "Unknown weather"
 
 
 def get_time_until_end():
@@ -123,7 +124,7 @@ def cli():
             current_song = get_current_song()
             print("Current song: {}".format(current_song))
             with open("songlist.txt", "a+") as f:
-                f.seek(0) # go to the beginning of the file
+                f.seek(0)  # go to the beginning of the file
                 if current_song not in f.read():
                     # f.read() leaves the cursor at the end of the file, perfect for appending
                     f.write(current_song + "\n")
@@ -132,7 +133,7 @@ def cli():
             with open("songlist.txt", "r") as f:
                 print(f.read())
         elif cmd in ["c", "clear"]:
-            print("\n" * 100) # it's probably a hack, but it works.
+            print("\n" * 100)  # it's probably a hack, but it works.
         elif cmd in ["q", "quit"]:
             exit()
         elif cmd in ["h", "help"]:
