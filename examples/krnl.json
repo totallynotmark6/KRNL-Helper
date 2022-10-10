@@ -1,0 +1,25 @@
+{
+    "music": {
+        "enabled": true,
+        "app": "Apple Music",
+        "playlist": "KRNL Radio",
+        "total_unique": 1,
+        "attempt_unique": 5
+    },
+    "weather": {
+        "enabled": true,
+        "service": "Open-Meteo",
+        "location": "Paris"
+    },
+    "timings": {
+        "enabled": true,
+        "duration": 3600,
+        "start": "21:00",
+        "end": "22:00"
+    },
+    "record": {
+        "enabled": true,
+        "path": "./recordings",
+        "spacing": 300
+    }
+}
