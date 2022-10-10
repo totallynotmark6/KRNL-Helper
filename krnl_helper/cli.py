@@ -33,6 +33,13 @@ def get_weather():
     )
 
 
+def get_current_song():
+    resp = requests.get('https://public.radio.co/stations/s209f09ff1/status')
+    data = resp.json()
+    # there's some more useful data here, but this works for now
+    return data['current_track']['title']
+
+
 def weathercode_to_string(code):
     if code == 0:
         return "Clear sky"
@@ -94,3 +101,4 @@ def weathercode_to_string(code):
 
 def cli():
     print(get_weather())
+    print(get_current_song())
