@@ -49,13 +49,13 @@ class Client:
         while not self._exit:
             try:
                 data = json.loads(self.socket.recv(NETWORK_MAX_SIZE))
-                match data["type"]:
+                compressed = base64.b85decode(data["data"])
+                decompressed_data = json.loads(bz2.decompress(compressed))
+                match decompressed_data["type"]:
                     case "log":
-                        compressed = base64.b85decode(data["data"])
-                        messages = json.loads(bz2.decompress(compressed))
-                        print(messages[0])
+                        print(decompressed_data["msgs"])
                     case _:
-                        print(data)
+                        print(decompressed_data)
             except socket.timeout:
                 pass
             except ConnectionResetError:

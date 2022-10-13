@@ -61,18 +61,18 @@ class Server:
             try:
                 for data_type in self._config.server_client_data:
                     sleep(0.1)
-                    to_send = {
-                        "type": data_type,
-                    }
+                    to_send = {"type": data_type}
                     match data_type:
                         case "log":
-                            msgs = json.dumps(list(get_console_handler().get_messages())).encode("utf-8")
-                            data = bz2.compress(msgs, NETWORK_COMPRESION_LEVEL)
-                            to_send["data"] = base64.b85encode(data).decode("utf-8")
+                            to_send["msgs"] = list(get_console_handler().get_messages())
                         case _:
                             get_logger().warning(f"Unknown data type {data_type}!")
                             pass
-                    sending = json.dumps(to_send).encode("utf-8")
+
+                    data = bz2.compress(json.dumps(to_send).encode("utf-8"), NETWORK_COMPRESION_LEVEL)
+                    to_send_ready = {"compressed": True}
+                    to_send_ready["data"] = base64.b85encode(data).decode("utf-8")
+                    sending = json.dumps(to_send_ready).encode("utf-8")
                     client.sendall(sending)
                     if len(sending) >= NETWORK_MAX_SIZE * 0.9:
                         get_logger().warning("Data could be too large! ({} bytes)".format(len(sending)))
