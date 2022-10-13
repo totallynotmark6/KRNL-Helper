@@ -88,7 +88,8 @@ def run_client(
 ):
     client = Client(ip_from_mnemonicode(server), server_port, server_password, wait_for_server, wants)
     config = Config().from_json(client.config)
-    config.client_override(wants)
+    if wants:
+        config.client_override(wants)
     ui = ConsoleUI(config, True, client)
     try:
         with Live(ui, console=console, screen=True):

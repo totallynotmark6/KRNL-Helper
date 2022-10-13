@@ -10,7 +10,7 @@ from multiprocessing.connection import wait
 from time import sleep
 
 from krnl_helper.console import console
-from krnl_helper.statics import NETWORK_MAX_SIZE
+from krnl_helper.statics import NETWORK_MAX_SIZE, NETWORK_TEXT_ENCODING
 
 # message log
 # c: client
@@ -40,10 +40,10 @@ class Client:
                         raise
                     sleep(2)
         self.socket.settimeout(0.5)
-        self.socket.sendall(server_password.encode("utf-8"))
-        self.config = json.loads(self.socket.recv(1024))
-        self.wants = wants or self._config["server"]["client_data"]
-        self.socket.sendall(json.dumps(self.wants).encode("utf-8"))
+        self.socket.sendall(server_password.encode(NETWORK_TEXT_ENCODING))
+        self.config = json.loads(self.socket.recv(NETWORK_MAX_SIZE).decode(NETWORK_TEXT_ENCODING))
+        self.wants = wants or self.config["server"]["client_data"]
+        self.socket.sendall(json.dumps(self.wants).encode(NETWORK_TEXT_ENCODING))
         self.thread = threading.Thread(target=self._run)
         self._logs = []
         self.thread.start()
@@ -51,9 +51,9 @@ class Client:
     def _run(self):
         while not self._exit:
             try:
-                data = json.loads(self.socket.recv(NETWORK_MAX_SIZE))
+                data = json.loads(self.socket.recv(NETWORK_MAX_SIZE).decode(NETWORK_TEXT_ENCODING))
                 compressed = base64.b85decode(data["data"])
-                decompressed_data = json.loads(bz2.decompress(compressed))
+                decompressed_data = json.loads(bz2.decompress(compressed).decode(NETWORK_TEXT_ENCODING))
                 match decompressed_data["type"]:
                     case "log":
                         self._logs = decompressed_data["msgs"]

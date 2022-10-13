@@ -9,7 +9,11 @@ from time import sleep
 from krnl_helper.console import console
 from krnl_helper.log import get_console_handler, get_logger
 from krnl_helper.network import get_local_ip, get_local_ip_mnemonicode
-from krnl_helper.statics import NETWORK_COMPRESION_LEVEL, NETWORK_MAX_SIZE
+from krnl_helper.statics import (
+    NETWORK_COMPRESION_LEVEL,
+    NETWORK_MAX_SIZE,
+    NETWORK_TEXT_ENCODING,
+)
 
 
 class Server:
@@ -48,17 +52,17 @@ class Server:
     def _client_thread(self, client):
         # auth!
         while True:
-            passw = client.recv(1024)
+            passw = client.recv(NETWORK_MAX_SIZE)
             if passw:
                 break
-        if passw != self.password.encode("utf-8"):
+        if passw != self.password.encode(NETWORK_TEXT_ENCODING):
             # yeet 'em
             client.close()
             return
         # send config
-        client.sendall(self._config.to_json().encode("utf-8"))
+        client.sendall(self._config.to_json().encode(NETWORK_TEXT_ENCODING))
         # get wants
-        wants = json.loads(client.recv(1024)) or self._config.server.client_data
+        wants = json.loads(client.recv(NETWORK_MAX_SIZE)) or self._config.server.client_data
         while not self._exit:
             try:
                 for data_type in wants:
@@ -71,10 +75,10 @@ class Server:
                             get_logger().warning(f"Unknown data type {data_type}!")
                             pass
 
-                    data = bz2.compress(json.dumps(to_send).encode("utf-8"), NETWORK_COMPRESION_LEVEL)
+                    data = bz2.compress(json.dumps(to_send).encode(NETWORK_TEXT_ENCODING), NETWORK_COMPRESION_LEVEL)
                     to_send_ready = {"compressed": True}
-                    to_send_ready["data"] = base64.b85encode(data).decode("utf-8")
-                    sending = json.dumps(to_send_ready).encode("utf-8")
+                    to_send_ready["data"] = base64.b85encode(data).decode(NETWORK_TEXT_ENCODING)
+                    sending = json.dumps(to_send_ready).encode(NETWORK_TEXT_ENCODING)
                     client.sendall(sending)
                     if len(sending) >= NETWORK_MAX_SIZE * 0.9:
                         get_logger().warning("Data could be too large! ({} bytes)".format(len(sending)))
