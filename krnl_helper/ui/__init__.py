@@ -36,7 +36,7 @@ class ConsoleUI:
 
     def update_data(self):
         if self._is_client:
-            pass
+            self._log_renderable.logs = self._client.get_logs()
         else:
             self._log_renderable.logs = list(get_console_handler().get_messages())
 

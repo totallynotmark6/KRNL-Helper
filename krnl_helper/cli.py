@@ -42,8 +42,8 @@ def run_server(
         server = Server(c)
     ui = ConsoleUI(c)
     try:
-        while True:
-            with Live(ui, console=console, screen=True):
+        with Live(ui, console=console, screen=True):
+            while True:
                 # console.print(ui.render())
                 ui.update_data()
                 sleep(0.25)
@@ -83,11 +83,11 @@ def run_client(
     config = Config().from_json(client.config)
     ui = ConsoleUI(config, True, client)
     try:
-        while True:
-            # with Live(ui, console=console, screen=True):
-            #     ui.update_data()
-            #     sleep(.25)
-            sleep(55)
+        with Live(ui, console=console, screen=True):
+            while True:
+                ui.update_data()
+                sleep(0.25)
+            # sleep(55)
     except KeyboardInterrupt:
         client.close()
 

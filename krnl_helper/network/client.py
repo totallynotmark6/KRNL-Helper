@@ -43,6 +43,7 @@ class Client:
         self.socket.sendall(server_password.encode("utf-8"))
         self.config = json.loads(self.socket.recv(1024))
         self.thread = threading.Thread(target=self._run)
+        self._logs = []
         self.thread.start()
 
     def _run(self):
@@ -53,7 +54,7 @@ class Client:
                 decompressed_data = json.loads(bz2.decompress(compressed))
                 match decompressed_data["type"]:
                     case "log":
-                        print(decompressed_data["msgs"])
+                        self._logs = decompressed_data["msgs"]
                     case _:
                         print(decompressed_data)
             except socket.timeout:
@@ -61,6 +62,9 @@ class Client:
             except ConnectionResetError:
                 break
         self.socket.close()
+
+    def get_logs(self):
+        return self._logs
 
     def close(self):
         self._exit = True
