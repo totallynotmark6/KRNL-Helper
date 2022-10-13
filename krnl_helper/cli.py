@@ -79,9 +79,16 @@ def run_client(
         "--wait-for-server",
         help="Wait for server to start",
     ),
+    wants: list[str] = typer.Option(
+        [],
+        "--wants",
+        "-w",
+        help="What data to get from server",
+    ),
 ):
-    client = Client(ip_from_mnemonicode(server), server_port, server_password, wait_for_server)
+    client = Client(ip_from_mnemonicode(server), server_port, server_password, wait_for_server, wants)
     config = Config().from_json(client.config)
+    config.client_override(wants)
     ui = ConsoleUI(config, True, client)
     try:
         with Live(ui, console=console, screen=True):

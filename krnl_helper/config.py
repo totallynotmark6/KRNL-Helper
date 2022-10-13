@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from krnl_helper.log import get_logger
+
 
 class Config:
     _config = {}
@@ -201,6 +203,9 @@ class Config:
         elif isinstance(data, str):
             self._config = json.loads(data)
         self.validate()
+
+    def client_override(self, wants):
+        get_logger().warning("Client override (NYI): %s", wants)
 
 
 class History:

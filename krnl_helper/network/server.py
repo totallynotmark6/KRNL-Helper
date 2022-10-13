@@ -57,9 +57,11 @@ class Server:
             return
         # send config
         client.sendall(self._config.to_json().encode("utf-8"))
+        # get wants
+        wants = json.loads(client.recv(1024)) or self._config.server.client_data
         while not self._exit:
             try:
-                for data_type in self._config.server_client_data:
+                for data_type in wants:
                     sleep(0.1)
                     to_send = {"type": data_type}
                     match data_type:

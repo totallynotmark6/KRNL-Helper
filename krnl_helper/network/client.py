@@ -25,7 +25,7 @@ from krnl_helper.statics import NETWORK_MAX_SIZE
 
 
 class Client:
-    def __init__(self, server_ip, server_port, server_password, wait_for_server=False):
+    def __init__(self, server_ip, server_port, server_password, wait_for_server=False, wants=[]):
         self._exit = False
         self.server_ip = server_ip
         self.server_port = server_port
@@ -42,6 +42,8 @@ class Client:
         self.socket.settimeout(0.5)
         self.socket.sendall(server_password.encode("utf-8"))
         self.config = json.loads(self.socket.recv(1024))
+        self.wants = wants or self._config["server"]["client_data"]
+        self.socket.sendall(json.dumps(self.wants).encode("utf-8"))
         self.thread = threading.Thread(target=self._run)
         self._logs = []
         self.thread.start()
