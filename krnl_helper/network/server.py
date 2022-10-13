@@ -1,6 +1,4 @@
 # a class that holds the server side of the network
-import base64
-import bz2
 import json
 import socket
 import threading
@@ -9,11 +7,8 @@ from time import sleep
 from krnl_helper.console import console
 from krnl_helper.log import get_console_handler, get_logger
 from krnl_helper.network import get_local_ip, get_local_ip_mnemonicode
-from krnl_helper.statics import (
-    NETWORK_COMPRESION_LEVEL,
-    NETWORK_MAX_SIZE,
-    NETWORK_TEXT_ENCODING,
-)
+from krnl_helper.network.utils import network_compress
+from krnl_helper.statics import NETWORK_MAX_SIZE, NETWORK_TEXT_ENCODING
 
 
 class Server:
@@ -73,12 +68,12 @@ class Server:
                             to_send["msgs"] = list(get_console_handler().get_messages())
                         case _:
                             get_logger().warning(f"Unknown data type {data_type}!")
-                            pass
 
-                    data = bz2.compress(json.dumps(to_send).encode(NETWORK_TEXT_ENCODING), NETWORK_COMPRESION_LEVEL)
-                    to_send_ready = {"compressed": True}
-                    to_send_ready["data"] = base64.b85encode(data).decode(NETWORK_TEXT_ENCODING)
-                    sending = json.dumps(to_send_ready).encode(NETWORK_TEXT_ENCODING)
+                    # data = bz2.compress(json.dumps(to_send).encode(NETWORK_TEXT_ENCODING), NETWORK_COMPRESION_LEVEL)
+                    # to_send_ready = {"compressed": True}
+                    # to_send_ready["data"] = base64.b85encode(data).decode(NETWORK_TEXT_ENCODING)
+                    # sending = json.dumps(to_send_ready).encode(NETWORK_TEXT_ENCODING)
+                    sending = network_compress(to_send)
                     client.sendall(sending)
                     if len(sending) >= NETWORK_MAX_SIZE * 0.9:
                         get_logger().warning("Data could be too large! ({} bytes)".format(len(sending)))

@@ -1,8 +1,6 @@
 # Client can technically get everything that the server displays, but by default, it only gets the times, and the schedule.
 
 # This is the client class. It is used to connect to the server and get the data.
-import base64
-import bz2
 import json
 import socket
 import threading
@@ -10,6 +8,7 @@ from multiprocessing.connection import wait
 from time import sleep
 
 from krnl_helper.console import console
+from krnl_helper.network.utils import network_uncompress
 from krnl_helper.statics import NETWORK_MAX_SIZE, NETWORK_TEXT_ENCODING
 
 # message log
@@ -51,9 +50,7 @@ class Client:
     def _run(self):
         while not self._exit:
             try:
-                data = json.loads(self.socket.recv(NETWORK_MAX_SIZE).decode(NETWORK_TEXT_ENCODING))
-                compressed = base64.b85decode(data["data"])
-                decompressed_data = json.loads(bz2.decompress(compressed).decode(NETWORK_TEXT_ENCODING))
+                decompressed_data = network_uncompress(self.socket.recv(NETWORK_MAX_SIZE))
                 match decompressed_data["type"]:
                     case "log":
                         self._logs = decompressed_data["msgs"]
