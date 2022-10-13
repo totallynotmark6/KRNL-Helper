@@ -7,6 +7,7 @@ from rich.tree import Tree
 
 from krnl_helper.config import Config
 from krnl_helper.log import get_console_handler, get_logger, init_logger
+from krnl_helper.music.mac import _run_applescript, _run_jxa
 from krnl_helper.network import (
     get_local_ip,
     get_local_ip_mnemonicode,
@@ -157,6 +158,14 @@ def debug_config(
     else:
         tree.add("[black]Server (disabled)[/black]")
     console.print(tree)
+
+
+@app.command()
+def test_command():
+    with console.status("Attempting to run JXA..."):
+        _run_jxa("Application('Fork').quit()")
+        _run_jxa("app = Application('Finder'); app.includeStandardAdditions = true; app.displayAlert('hi!')")
+    # _run_applescript("tell application \"Spotify\" to play track \"spotify:track:6y0igZArWVi6Iz0rj35c1Y\"")
 
 
 def cli():

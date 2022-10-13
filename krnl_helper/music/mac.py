@@ -1,4 +1,14 @@
+import subprocess
+
 from .base import Music, MusicApp
+
+
+def _run_applescript(script):
+    return subprocess.run(["osascript", "-e", script], capture_output=True)
+
+
+def _run_jxa(script):
+    return subprocess.run(["osascript", "-l", "JavaScript", "-e", script], capture_output=True)
 
 
 class AppleMusicApp(MusicApp):
