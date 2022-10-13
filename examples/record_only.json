@@ -2,6 +2,9 @@
     "music": {
         "enabled": false
     },
+    "hold_music": {
+        "enabled": false
+    },
     "weather": {
         "enabled": false
     },

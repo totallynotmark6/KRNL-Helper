@@ -17,5 +17,14 @@ class SpotifyApp(MusicApp):
         pass
 
 
+class MPVApp(MusicApp):
+    name = "MPV"
+    system = "Darwin"
+
+    def __init__(self):
+        pass
+
+
 Music.register_app(AppleMusicApp)
 Music.register_app(SpotifyApp)
+Music.register_app(MPVApp)
