@@ -39,7 +39,8 @@
         "client_data": [
             "log",
             "timings",
-            "schedule"
+            "schedule",
+            "now_playing_file"
         ]
     }
 }

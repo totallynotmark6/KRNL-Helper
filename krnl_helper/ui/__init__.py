@@ -5,6 +5,7 @@ from krnl_helper.config import Config
 from krnl_helper.console import console
 from krnl_helper.log import get_console_handler, get_logger
 from krnl_helper.ui.log_renderable import LogRenderable
+from krnl_helper.ui.weather_renderable import WeatherRenderable
 
 
 class ConsoleUI:
@@ -13,6 +14,7 @@ class ConsoleUI:
         self._is_client = is_client
         self._client = client
         self._log_renderable = LogRenderable()
+        self._weather_renderable = WeatherRenderable(config)
 
     def render_logs(self):
         layout = Layout()
@@ -32,6 +34,7 @@ class ConsoleUI:
         l["top_left"].split_column(Layout(name="timings"), Layout(name="weather"))
         l["bottom"].split_row(Layout(name="status"), Layout(name="logs"))
         l["logs"].update(self._log_renderable)
+        l["weather"].update(self._weather_renderable)
         return l
 
     def update_data(self):

@@ -25,7 +25,7 @@ class OpenMeteoHour:
 
 
 class OpenMeteo(WeatherService):
-    name = "OpenMeteo"
+    name = "Open-Meteo"
     url = "https://api.open-meteo.com/v1/forecast?latitude=41.92&longitude=-91.43&hourly=temperature_2m,apparent_temperature,precipitation,rain,showers,snowfall,snow_depth,weathercode,windspeed_10m,winddirection_10m,windgusts_10m&timezone=America%2FChicago"
     _data: dict[str, OpenMeteoHour] = {}
 

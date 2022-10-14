@@ -52,8 +52,8 @@ def run_server(
     logger = get_logger()
     if enable_server or (enable_server == None and c.server_enabled):
         server = Server(c)
-    history = History(c)
-    sched = Schedule(c)
+    # history = History(c)
+    # sched = Schedule(c)
     ui = ConsoleUI(c)
     try:
         with Live(ui, console=console, screen=True):

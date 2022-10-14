@@ -5,6 +5,7 @@ import json
 import socket
 import threading
 from multiprocessing.connection import wait
+from pathlib import Path
 from time import sleep
 
 from krnl_helper.console import console
@@ -54,6 +55,9 @@ class Client:
                 match decompressed_data["type"]:
                     case "log":
                         self._logs = decompressed_data["msgs"]
+                    case "now_playing_file":
+                        with open(Path.home() / "Documents" / "now_playing.txt", "w") as f:
+                            f.write(decompressed_data["data"])
                     case _:
                         print(decompressed_data)
             except socket.timeout:

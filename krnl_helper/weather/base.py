@@ -14,18 +14,18 @@ class Weather:
                 cls._services[name] = service
 
     @classmethod
-    def get_service(cls, service) -> "WeatherService":
-        cached = cls._active.get(service)
+    def get_service(cls, s) -> "WeatherService":
+        cached = cls._active.get(s)
         if cached:
             return cached
         else:
-            service = cls._services.get(service)
+            service = cls._services.get(s)
             if service:
                 service = service()
                 cls._active[service.name] = service
                 return service
             else:
-                raise ValueError(f"Service {service} not found")
+                raise ValueError(f"Service {s} not found")
 
 
 class WeatherService:

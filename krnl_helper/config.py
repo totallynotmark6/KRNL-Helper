@@ -194,8 +194,8 @@ class Config:
     def server_client_data(self):
         return self._config["server"]["client_data"]
 
-    def to_json(self):
-        return json.dumps(self._config, indent=4)
+    def to_json(self, indent=0):
+        return json.dumps(self._config, indent=indent)
 
     def from_json(self, data):
         if isinstance(data, dict):

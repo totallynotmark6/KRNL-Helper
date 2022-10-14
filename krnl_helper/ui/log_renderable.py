@@ -1,4 +1,5 @@
 from rich.layout import Layout
+from rich.panel import Panel
 from rich.table import Table
 
 from krnl_helper.log import get_console_handler
@@ -37,7 +38,7 @@ class LogRenderable:
             else:
                 break
 
-        return table
+        return Panel(table, title="Logs")
 
     def __rich_console__(self, console, options):
         yield self.render(console, options)
