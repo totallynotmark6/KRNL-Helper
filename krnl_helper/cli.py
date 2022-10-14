@@ -5,9 +5,8 @@ import typer
 from rich.live import Live
 from rich.tree import Tree
 
-from krnl_helper.config import Config
-from krnl_helper.log import get_console_handler, get_logger, init_logger
-from krnl_helper.music.mac.mac import _run_jxa
+from krnl_helper.config import Config, History
+from krnl_helper.log import get_logger, init_logger
 from krnl_helper.network import (
     get_local_ip,
     get_local_ip_mnemonicode,
@@ -15,6 +14,8 @@ from krnl_helper.network import (
 )
 from krnl_helper.network.client import Client
 from krnl_helper.network.server import Server
+from krnl_helper.recording import Record
+from krnl_helper.schedule import Schedule
 from krnl_helper.ui import ConsoleUI
 from krnl_helper.weather.base import Weather
 
@@ -52,8 +53,13 @@ def run_server(
     logger = get_logger()
     if enable_server or (enable_server == None and c.server_enabled):
         server = Server(c)
-    # history = History(c)
-    # sched = Schedule(c)
+    if c.record_enabled:
+        record = Record(c)
+    if c.history_enabled:
+        history = History(c.history_path)
+    else:
+        history = History()
+    sched = Schedule(c, history)
     ui = ConsoleUI(c)
     try:
         with Live(ui, console=console, screen=True):
@@ -186,8 +192,16 @@ def test_command():
     #     _run_jxa("Application('Fork').quit()")
     #     _run_jxa("app = Application('Finder'); app.includeStandardAdditions = true; app.displayAlert('hi!')")
     # _run_applescript("tell application \"Spotify\" to play track \"spotify:track:6y0igZArWVi6Iz0rj35c1Y\"")
-    ws = Weather.get_service("OpenMeteo")
-    print(ws.get_current_est().temperature_2m.to("degF"))
+    # ws = Weather.get_service("OpenMeteo")
+    # print(ws.get_current_est().temperature_2m.to("degF"))
+    # c = Config.from_file(Path("examples/krnl.json"))
+    # r = Record(c)
+    def reverse_str_recursive(string):
+        if len(string) == 0 or len(string) == 1:
+            return string
+        return reverse_str_recursive(string[1:]) + string[0]
+
+    reverse_str_recursive("Hello")
 
 
 def cli():

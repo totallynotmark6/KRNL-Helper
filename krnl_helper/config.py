@@ -1,4 +1,5 @@
 import json
+from datetime import date, datetime, time
 from pathlib import Path
 
 from krnl_helper.log import get_logger
@@ -160,11 +161,16 @@ class Config:
 
     @property
     def timings_start(self):
-        return self._config["timings"]["start"]
+        # make a datetime object from the string "HH:MM"
+        t = time.fromisoformat(self._config["timings"]["start"])
+        d = date.today()
+        return datetime.combine(d, t)
 
     @property
     def timings_end(self):
-        return self._config["timings"]["end"]
+        t = time.fromisoformat(self._config["timings"]["end"])
+        d = date.today()
+        return datetime.combine(d, t)
 
     @property
     def record_enabled(self):
@@ -197,12 +203,12 @@ class Config:
     def to_json(self, indent=0):
         return json.dumps(self._config, indent=indent)
 
-    def from_json(self, data):
+    @classmethod
+    def from_json(cls, data):
         if isinstance(data, dict):
-            self._config = data
+            return cls(data)
         elif isinstance(data, str):
-            self._config = json.loads(data)
-        self.validate()
+            return cls(json.loads(data))
 
     def client_override(self, wants):
         get_logger().warning("Client override (NYI): %s", wants)
@@ -213,7 +219,7 @@ class History:
     _current_show = []
     _past_shows = []
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path = None):
         self._path = path
         self._past_shows = self._load_history()
 
@@ -224,8 +230,9 @@ class History:
         return []
 
     def _save_history(self):
-        with self._path.open("w") as f:
-            json.dump(self._history, f)
+        if self._path:
+            with self._path.open("w") as f:
+                json.dump(self._history, f)
 
     def add(self, song):
         self._history.append(song)

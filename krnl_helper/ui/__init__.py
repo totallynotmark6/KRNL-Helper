@@ -14,7 +14,8 @@ class ConsoleUI:
         self._is_client = is_client
         self._client = client
         self._log_renderable = LogRenderable()
-        self._weather_renderable = WeatherRenderable(config)
+        if config.weather_enabled:
+            self._weather_renderable = WeatherRenderable(config)
 
     def render_logs(self):
         layout = Layout()
@@ -34,7 +35,11 @@ class ConsoleUI:
         l["top_left"].split_column(Layout(name="timings"), Layout(name="weather"))
         l["bottom"].split_row(Layout(name="status"), Layout(name="logs"))
         l["logs"].update(self._log_renderable)
-        l["weather"].update(self._weather_renderable)
+        if self._config.weather_enabled:
+            l["weather"].update(self._weather_renderable)
+        else:
+            l["weather"].visible = False
+
         return l
 
     def update_data(self):

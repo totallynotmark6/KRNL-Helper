@@ -1,6 +1,7 @@
+from krnl_helper.config import Config, History
+
+
 class Schedule:
-    pass
-
-
-class History:
-    pass
+    def __init__(self, config: Config, history: History) -> None:
+        # self.p = config
+        self.history = history
