@@ -6,7 +6,11 @@ from time import sleep
 
 from krnl_helper.console import console
 from krnl_helper.log import get_console_handler, get_logger
-from krnl_helper.network import get_local_ip, get_local_ip_mnemonicode
+from krnl_helper.network import (
+    get_local_ip,
+    get_local_ip_mnemonicode,
+    ip_to_mnemonicode,
+)
 from krnl_helper.network.utils import network_compress
 from krnl_helper.statics import NETWORK_MAX_SIZE, NETWORK_TEXT_ENCODING
 
@@ -54,6 +58,7 @@ class Server:
             # yeet 'em
             client.close()
             return
+        get_logger().info("Client connected! (addr: {})".format(ip_to_mnemonicode(client.getpeername()[0])))
         # send config
         client.sendall(self._config.to_json().encode(NETWORK_TEXT_ENCODING))
         # get wants

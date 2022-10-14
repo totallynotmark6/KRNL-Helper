@@ -1,4 +1,8 @@
 import platform
+from datetime import timedelta
+
+import rich.repr
+from attrs import define
 
 
 class Music:
@@ -32,3 +36,26 @@ class MusicApp:
 
     def __init__(self):
         pass
+
+    def is_running(self):
+        raise NotImplementedError
+
+
+@define
+class BasicSong:
+    """A representation of a song.
+
+    Different music apps provide different information about a song. This class is a basic representation of a song, which other apps can extend.
+    """
+
+    title: str
+    """The title of the song."""
+
+    artist: str
+    """The artist of the song."""
+
+    album: str
+    """The album of the song."""
+
+    duration: timedelta
+    """The duration of the song."""

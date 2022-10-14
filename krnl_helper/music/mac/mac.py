@@ -1,6 +1,6 @@
 import subprocess
 
-from .base import Music, MusicApp
+from krnl_helper.music.base import Music, MusicApp
 
 
 def _run_applescript(script):

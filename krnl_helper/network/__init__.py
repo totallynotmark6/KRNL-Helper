@@ -8,12 +8,17 @@ def get_local_ip():
     return socket.gethostbyname(socket.gethostname())
 
 
+def ip_to_mnemonicode(ip):
+    """Returns the mnemonicode from IP address."""
+    if ip.count(".") == 3:
+        return "-".join(mnemonicode.index_to_word(int(i)) for i in ip.split("."))
+    return mnemonicode.mnformat(ip.encode("utf-8"))
+
+
 def get_local_ip_mnemonicode():
     """Returns the local IP address of the machine in mnemonicode."""
     ip = get_local_ip()
-    if ip.count(".") == 3:
-        return "-".join(mnemonicode.index_to_word(int(i)) for i in ip.split("."))
-    return mnemonicode.mnformat(get_local_ip().encode("utf-8"))
+    return ip_to_mnemonicode(ip)
 
 
 def ip_from_mnemonicode(mn):

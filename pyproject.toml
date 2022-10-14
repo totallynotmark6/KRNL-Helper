@@ -12,6 +12,8 @@ requests = "^2.28.1"
 rich = "^12.6.0"
 typer = "^0.6.1"
 mnemonicode = "^1.4.5"
+attrs = "^22.1.0"
+Pint = "^0.19.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.3"

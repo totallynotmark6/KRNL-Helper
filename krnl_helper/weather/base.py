@@ -1,5 +1,9 @@
+import requests
+
+
 class Weather:
     _services = {}
+    _active = {}
 
     @classmethod
     def register_service(cls, service):
@@ -10,12 +14,28 @@ class Weather:
                 cls._services[name] = service
 
     @classmethod
-    def get_service(cls, service):
-        return cls._services[service]
+    def get_service(cls, service) -> "WeatherService":
+        cached = cls._active.get(service)
+        if cached:
+            return cached
+        else:
+            service = cls._services.get(service)
+            if service:
+                service = service()
+                cls._active[service.name] = service
+                return service
+            else:
+                raise ValueError(f"Service {service} not found")
 
 
 class WeatherService:
     name = "N/A"
+    url = "N/A"
 
     def __init__(self):
-        pass
+        self.refresh()
+
+    def refresh(self):
+        resp = requests.get(self.url)
+        if resp.status_code == 200:
+            self._parse(resp.json())

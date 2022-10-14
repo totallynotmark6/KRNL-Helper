@@ -7,7 +7,7 @@ from rich.tree import Tree
 
 from krnl_helper.config import Config
 from krnl_helper.log import get_console_handler, get_logger, init_logger
-from krnl_helper.music.mac import _run_applescript, _run_jxa
+from krnl_helper.music.mac.mac import _run_jxa
 from krnl_helper.network import (
     get_local_ip,
     get_local_ip_mnemonicode,
@@ -16,6 +16,7 @@ from krnl_helper.network import (
 from krnl_helper.network.client import Client
 from krnl_helper.network.server import Server
 from krnl_helper.ui import ConsoleUI
+from krnl_helper.weather.base import Weather
 
 from .console import console
 
@@ -34,18 +35,29 @@ def run_server(
         dir_okay=False,
         readable=True,
         resolve_path=True,
-    )
+    ),
+    enable_server: bool = typer.Option(
+        None,
+        "--enable-server/--disable-server",
+        help="Enables or disables the server. The default relies on the config.",
+    ),
+    # enable_ui: bool = typer.Option(
+    #     True,
+    #     "--enable-ui/--disable-ui",
+    #     help="Enables or disables the UI."
+    # )
 ):
     c = Config.from_file(config)
     init_logger()
     logger = get_logger()
-    if c.server_enabled:
+    if enable_server or (enable_server == None and c.server_enabled):
         server = Server(c)
+    history = History(c)
+    sched = Schedule(c)
     ui = ConsoleUI(c)
     try:
         with Live(ui, console=console, screen=True):
             while True:
-                # console.print(ui.render())
                 ui.update_data()
                 sleep(0.25)
     except KeyboardInterrupt:
@@ -170,10 +182,12 @@ def debug_config(
 
 @app.command()
 def test_command():
-    with console.status("Attempting to run JXA..."):
-        _run_jxa("Application('Fork').quit()")
-        _run_jxa("app = Application('Finder'); app.includeStandardAdditions = true; app.displayAlert('hi!')")
+    # with console.status("Attempting to run JXA..."):
+    #     _run_jxa("Application('Fork').quit()")
+    #     _run_jxa("app = Application('Finder'); app.includeStandardAdditions = true; app.displayAlert('hi!')")
     # _run_applescript("tell application \"Spotify\" to play track \"spotify:track:6y0igZArWVi6Iz0rj35c1Y\"")
+    ws = Weather.get_service("OpenMeteo")
+    print(ws.get_current_est().temperature_2m.to("degF"))
 
 
 def cli():
