@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from datetime import datetime, timedelta
 from functools import cache
@@ -201,10 +202,14 @@ class Playlist:
         )
 
 
+def get_jxa_path(script_name):
+    return os.path.join(os.path.dirname(__file__), "jxa", script_name + ".jxa")
+
+
 def get_all_songs_in_playlist(playlist: str) -> list[Song]:
     """Returns all songs in a playlist. This is uncached!"""
     result = subprocess.run(
-        ["osascript", "-l", "JavaScript", "getAllSongsInPlaylist.jxa", playlist], capture_output=True
+        ["osascript", "-l", "JavaScript", get_jxa_path("getAllSongsInPlaylist"), playlist], capture_output=True
     )
     result = json.loads(result.stdout)
     return [Song.from_applescript_properties(song) for song in result]
@@ -214,7 +219,7 @@ def get_all_songs_in_playlist(playlist: str) -> list[Song]:
 def get_current_song() -> Song:
     """Returns the current song. This is uncached!"""
     try:
-        result = subprocess.run(["osascript", "-l", "JavaScript", "getCurrentSong.jxa"], capture_output=True)
+        result = subprocess.run(["osascript", "-l", "JavaScript", get_jxa_path("getCurrentSong")], capture_output=True)
         result = json.loads(result.stdout)
         return Song.from_applescript_properties(result)
     except KeyError:
@@ -224,7 +229,9 @@ def get_current_song() -> Song:
 def get_current_position() -> timedelta:
     """Returns the current position of the song. This is uncached!"""
     try:
-        result = subprocess.run(["osascript", "-l", "JavaScript", "getCurrentPosition.jxa"], capture_output=True)
+        result = subprocess.run(
+            ["osascript", "-l", "JavaScript", get_jxa_path("getCurrentPosition")], capture_output=True
+        )
         return timedelta(seconds=float(result.stdout))
     except ValueError:
         return timedelta(seconds=0)
@@ -232,7 +239,9 @@ def get_current_position() -> timedelta:
 
 def play_playlist(playlist: str):
     """Plays a playlist."""
-    result = subprocess.run(["osascript", "-l", "JavaScript", "playPlaylist.jxa", playlist], capture_output=True)
+    result = subprocess.run(
+        ["osascript", "-l", "JavaScript", get_jxa_path("playPlaylist"), playlist], capture_output=True
+    )
     result = json.loads(result.stdout)
     if result["status"] != "success":
         raise Exception("Playlist not found!")
@@ -240,12 +249,14 @@ def play_playlist(playlist: str):
 
 def make_playlist(playlist: str, description=""):
     """Makes a playlist."""
-    subprocess.run(["osascript", "-l", "JavaScript", "makePlaylist.jxa", playlist, description], capture_output=True)
+    subprocess.run(
+        ["osascript", "-l", "JavaScript", get_jxa_path("makePlaylist"), playlist, description], capture_output=True
+    )
 
 
 def get_all_playlists() -> list[Playlist]:
     """Returns all playlists."""
-    result = subprocess.run(["osascript", "-l", "JavaScript", "getAllPlaylists.jxa"], capture_output=True)
+    result = subprocess.run(["osascript", "-l", "JavaScript", get_jxa_path("getAllPlaylists")], capture_output=True)
     result = json.loads(result.stdout)
     return [Playlist.from_applescript_properties(playlist) for playlist in result]
 
@@ -253,22 +264,26 @@ def get_all_playlists() -> list[Playlist]:
 def set_playlist_description(playlist: str, description: str):
     """Sets the description of a playlist."""
     subprocess.run(
-        ["osascript", "-l", "JavaScript", "setPlaylistDescription.jxa", playlist, description], capture_output=True
+        ["osascript", "-l", "JavaScript", get_jxa_path("setPlaylistDescription"), playlist, description],
+        capture_output=True,
     )
 
 
 def delete_playlist(playlist: str):
     """Deletes a playlist."""
-    subprocess.run(["osascript", "-l", "JavaScript", "deletePlaylist.jxa", playlist], capture_output=True)
+    subprocess.run(["osascript", "-l", "JavaScript", get_jxa_path("deletePlaylist"), playlist], capture_output=True)
 
 
 def clear_songs_from_playlist(playlist: str):
     """Clears all songs from a playlist."""
-    subprocess.run(["osascript", "-l", "JavaScript", "clearSongsFromPlaylist.jxa", playlist], capture_output=True)
+    subprocess.run(
+        ["osascript", "-l", "JavaScript", get_jxa_path("clearSongsFromPlaylist"), playlist], capture_output=True
+    )
 
 
 def add_song_to_playlist(playlist: str, song: Song):
     """Adds a song to a playlist."""
     subprocess.run(
-        ["osascript", "-l", "JavaScript", "addSongToPlaylist.jxa", playlist, song.persistentID], capture_output=True
+        ["osascript", "-l", "JavaScript", get_jxa_path("addSongToPlaylist"), playlist, song.persistentID],
+        capture_output=True,
     )

@@ -1,0 +1,17 @@
+#!/usr/bin/env osascript -l JavaScript
+
+function run(argv) {
+    mus = Application('Music')
+    playlists = mus.playlists()
+    for (i = 0; i < playlists.length; i++) {
+        if (playlists[i].name() == argv[0]) {
+            playlist = playlists[i]
+            tracks = playlist.tracks()
+            for (j = 0; j < tracks.length; j++) {
+                tracks[j].delete()
+            }
+            return JSON.stringify({ 'status': 'success' })
+        }
+    }
+    return JSON.stringify({ 'status': 'not found' })
+}

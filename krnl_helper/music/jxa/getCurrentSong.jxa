@@ -1,0 +1,11 @@
+#!/usr/bin/env osascript -l JavaScript
+
+function run(argv) {
+    track = Application("Music").currentTrack
+    try {
+        prop = track.properties()
+    } catch (error) {
+        prop = {}
+    }
+    return JSON.stringify(prop)
+}

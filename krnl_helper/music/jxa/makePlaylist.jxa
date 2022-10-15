@@ -1,0 +1,9 @@
+#!/usr/bin/env osascript -l JavaScript
+
+function run(argv) {
+    mus = Application('Music')
+    playlist = mus.UserPlaylist().make()
+    playlist.name = argv[0]
+    playlist.description = argv[1]
+    return JSON.stringify({ 'status': 'success' })
+}

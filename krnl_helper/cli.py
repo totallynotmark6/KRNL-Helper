@@ -7,6 +7,7 @@ from rich.tree import Tree
 
 from krnl_helper.config import Config, History
 from krnl_helper.log import get_logger, init_logger
+from krnl_helper.music import Playlist
 from krnl_helper.network import (
     get_local_ip,
     get_local_ip_mnemonicode,
@@ -196,12 +197,8 @@ def test_command():
     # print(ws.get_current_est().temperature_2m.to("degF"))
     # c = Config.from_file(Path("examples/krnl.json"))
     # r = Record(c)
-    def reverse_str_recursive(string):
-        if len(string) == 0 or len(string) == 1:
-            return string
-        return reverse_str_recursive(string[1:]) + string[0]
-
-    reverse_str_recursive("Hello")
+    p = Playlist.name_of("KRNL Radio")
+    p.play()
 
 
 def cli():

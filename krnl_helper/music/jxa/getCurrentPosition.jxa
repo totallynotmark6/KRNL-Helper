@@ -1,0 +1,5 @@
+#!/usr/bin/env osascript -l JavaScript
+
+function run(argv) {
+    return Application("Music").playerPosition()
+}
