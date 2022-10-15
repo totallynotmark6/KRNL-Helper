@@ -6,6 +6,7 @@ from time import sleep
 
 from krnl_helper.console import console
 from krnl_helper.log import get_console_handler, get_logger
+from krnl_helper.music import CurrentSong
 from krnl_helper.network import (
     get_local_ip,
     get_local_ip_mnemonicode,
@@ -71,6 +72,10 @@ class Server:
                     match data_type:
                         case "log":
                             to_send["msgs"] = list(get_console_handler().get_messages())
+                        case "now_playing_file":
+                            s = CurrentSong().song
+                            tmpl = "{title} - {artist}"
+                            to_send["data"] = tmpl.format(title=s.title, artist=s.artist)
                         case _:
                             get_logger().warning(f"Unknown data type {data_type}!")
 
