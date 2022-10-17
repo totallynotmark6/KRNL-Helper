@@ -1,7 +1,10 @@
 import itertools
 import random
 
+from rich.progress import Progress
+
 from krnl_helper.config import Config, History
+from krnl_helper.console import console
 from krnl_helper.log import get_logger
 from krnl_helper.music import LiveSegment, Playlist, Song
 
@@ -43,30 +46,47 @@ class Schedule:
         LIVE_SEGMENT_LENGTH = 2 * 60  # seconds
         TOTAL_DURATION = 60 * 60  # seconds
         END_PADDING = 60  # seconds
-
-        if START_WITH_SONG:
-            self.songs.append(self._get_next_song())
-            self.songs.append(LiveSegment(LIVE_SEGMENT_LENGTH))
-        else:
-            self.songs.append(LiveSegment(LIVE_SEGMENT_LENGTH))
-        st_index = len(self.songs)
-        while sum(map(lambda song: song.duration.total_seconds(), self.songs)) < TOTAL_DURATION - END_PADDING:
-            while sum(map(lambda song: song.duration.total_seconds(), self.songs[st_index:])) < LIVE_SEGMENT_FREQUENCY:
+        with Progress(console=console) as progress:
+            task = progress.add_task("Generating schedule...", total=TOTAL_DURATION)
+            if START_WITH_SONG:
                 ns = self._get_next_song()
+                self.songs.append(ns)
+                progress.advance(task, ns.duration.total_seconds())
+                self.songs.append(LiveSegment(LIVE_SEGMENT_LENGTH))
+                progress.advance(task, LIVE_SEGMENT_LENGTH)
+            else:
+                self.songs.append(LiveSegment(LIVE_SEGMENT_LENGTH))
+                progress.advance(task, LIVE_SEGMENT_LENGTH)
+
+            st_index = len(self.songs)
+            while sum(map(lambda song: song.duration.total_seconds(), self.songs)) < TOTAL_DURATION - END_PADDING:
+                while (
+                    sum(map(lambda song: song.duration.total_seconds(), self.songs[st_index:])) < LIVE_SEGMENT_FREQUENCY
+                ):
+                    ns = self._get_next_song()
+                    if (
+                        sum(map(lambda song: song.duration.total_seconds(), self.songs + [ns]))
+                        < TOTAL_DURATION - END_PADDING
+                    ):
+                        self.songs.append(ns)
+                        progress.advance(task, ns.duration.total_seconds())
+                    else:
+                        break
                 if (
                     sum(map(lambda song: song.duration.total_seconds(), self.songs + [ns]))
                     < TOTAL_DURATION - END_PADDING
                 ):
-                    self.songs.append(ns)
+                    self.songs.append(LiveSegment(LIVE_SEGMENT_LENGTH))
+                    progress.advance(task, LIVE_SEGMENT_LENGTH)
+                    st_index = len(self.songs)
                 else:
-                    break
-            if sum(map(lambda song: song.duration.total_seconds(), self.songs + [ns])) < TOTAL_DURATION - END_PADDING:
-                self.songs.append(LiveSegment(LIVE_SEGMENT_LENGTH))
-                st_index = len(self.songs)
-            else:
-                self.songs.append(
-                    LiveSegment(TOTAL_DURATION - sum(map(lambda song: song.duration.total_seconds(), self.songs)))
-                )
+                    self.songs.append(
+                        LiveSegment(TOTAL_DURATION - sum(map(lambda song: song.duration.total_seconds(), self.songs)))
+                    )
+                    progress.advance(
+                        task, TOTAL_DURATION - sum(map(lambda song: song.duration.total_seconds(), self.songs))
+                    )
+            progress.update(task, completed=TOTAL_DURATION)
 
 
 ## 1 ##
