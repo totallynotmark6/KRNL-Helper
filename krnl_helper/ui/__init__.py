@@ -39,6 +39,11 @@ class ConsoleUI:
             l["weather"].update(self._weather_renderable)
         else:
             l["weather"].visible = False
+        if self._config.music_enabled:
+            # l["schedule"].update(self._schedule_renderable)
+            pass
+        else:
+            l["schedule"].visible = False
 
         return l
 

@@ -34,6 +34,15 @@ class Song:
     def __hash__(self):
         return hash(self.persistentID)
 
+    def to_json(self):
+        return {
+            "title": self.title,
+            "artist": self.artist,
+            "album": self.album,
+            "duration": self.duration.total_seconds(),
+            "persistentID": self.persistentID,
+        }
+
     @classmethod
     def from_applescript_properties(cls, properties):
         return cls(
@@ -43,6 +52,12 @@ class Song:
             properties["duration"],
             properties["persistentID"],
         )
+
+
+@rich.repr.auto
+class LiveSegment(Song):
+    def __init__(self, duration: Union[timedelta, float]):
+        super().__init__("Live", "Mark", "what album", duration, "C0FFEE")
 
 
 class CurrentSong:

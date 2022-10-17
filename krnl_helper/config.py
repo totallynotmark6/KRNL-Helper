@@ -3,6 +3,7 @@ from datetime import date, datetime, time
 from pathlib import Path
 
 from krnl_helper.log import get_logger
+from krnl_helper.music import Song
 
 
 class Config:
@@ -92,7 +93,10 @@ class Config:
 
     def get_history(self):
         if self._history is None:
-            self._history = History(self._config["music"]["history_path"])
+            if self.history_enabled:
+                self._history = History(self.history_path)
+            else:
+                self._history = History()
         return self._history
 
     @property
@@ -215,7 +219,6 @@ class Config:
 
 
 class History:
-    # TODO: Implement history
     _current_show = []
     _past_shows = []
 
@@ -232,8 +235,24 @@ class History:
     def _save_history(self):
         if self._path:
             with self._path.open("w") as f:
-                json.dump(self._history, f)
+                json.dump({"current": self._current_show, "past": self._past_shows}, f)
 
     def add(self, song):
-        self._history.append(song)
+        if isinstance(song, Song):
+            self._current_show.append(song.to_json())
+        elif isinstance(song, dict):
+            self._current_show.append(song)
+        self._save_history()
+
+    def get_show(self, show_index):
+        if show_index == 0:
+            return self._current_show
+        else:
+            try:
+                return self._past_shows[show_index - 1]["songs"]
+            except (KeyError, IndexError):
+                return {"songs": []}
+
+    def finish_show(self):
+        self._past_shows.insert({"end_time": datetime.now(), "songs": self._current_show}, 0)
         self._save_history()

@@ -56,18 +56,16 @@ def run_server(
         server = Server(c)
     if c.record_enabled:
         record = Record(c)
-    if c.history_enabled:
-        history = History(c.history_path)
-    else:
-        history = History()
+    history = c.get_history()
     sched = Schedule(c, history)
+    sched.generate_schedule()
     ui = ConsoleUI(c)
     try:
         with Live(ui, console=console, screen=True):
             while True:
                 ui.update_data()
                 sleep(0.25)
-    except KeyboardInterrupt:
+    finally:
         server.close()
 
 
@@ -112,11 +110,11 @@ def run_client(
     ui = ConsoleUI(config, True, client)
     try:
         with Live(ui, console=console, screen=True):
-            while True:
+            while not client.should_exit:
                 ui.update_data()
                 sleep(0.25)
             # sleep(55)
-    except KeyboardInterrupt:
+    finally:
         client.close()
 
 

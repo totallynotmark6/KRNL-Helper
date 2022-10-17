@@ -75,7 +75,10 @@ class Server:
                         case "now_playing_file":
                             s = CurrentSong().song
                             tmpl = "{title} - {artist}"
-                            to_send["data"] = tmpl.format(title=s.title, artist=s.artist)
+                            try:
+                                to_send["data"] = tmpl.format(title=s.title, artist=s.artist)
+                            except AttributeError:
+                                to_send["data"] = "Silence - The Void"
                         case _:
                             get_logger().warning(f"Unknown data type {data_type}!")
 
@@ -93,7 +96,10 @@ class Server:
                 break
             except BrokenPipeError:
                 break
-        client.close()
+        try:
+            client.sendall(network_compress({"type": "exit"}))
+        finally:
+            client.close()
 
     def close(self):
         self._exit = True

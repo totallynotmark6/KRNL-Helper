@@ -58,6 +58,8 @@ class Client:
                     case "now_playing_file":
                         with open(Path.home() / "Documents" / "now_playing.txt", "w") as f:
                             f.write(decompressed_data["data"])
+                    case "exit":
+                        self._exit = True
                     case _:
                         print(decompressed_data)
             except socket.timeout:
@@ -73,6 +75,10 @@ class Client:
         self._exit = True
         self.thread.join()
         self.socket.close()
+
+    @property
+    def should_exit(self):
+        return self._exit
 
     def __del__(self):
         self.close()
