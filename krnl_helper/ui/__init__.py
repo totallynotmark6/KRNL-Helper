@@ -48,6 +48,8 @@ class ConsoleUI:
             pass
         else:
             l["schedule"].visible = False
+        if self._config.timings_enabled:
+            l["timings"].update(self._timings_renderable)
 
         return l
 

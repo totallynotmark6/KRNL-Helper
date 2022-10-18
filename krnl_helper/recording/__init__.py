@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from krnl_helper.config import Config
+from krnl_helper.log import get_logger
 
 
 class Record:
@@ -24,8 +25,9 @@ class Record:
                 "copy",
                 str(self.path.resolve()),
             ],
-            stdout=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
         )
+        get_logger().info("Started recording!")
 
     def is_running(self):
         return self._process.poll() is None
@@ -37,5 +39,6 @@ class Record:
         try:
             self._process.terminate()
             self._process.wait()
+            get_logger().info("Stopped recording!")
         except AttributeError:
             pass

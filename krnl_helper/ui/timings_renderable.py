@@ -3,51 +3,25 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from krnl_helper.schedule import Timings
+
 
 class TimingsRenderable:
     def __init__(self, config):
-        self.schedule = []
-        self.current_time = 0
+        self.timingscls: Timings = None
 
     def render(self, console, options):
         layout = Layout(name="schedule")
 
         table = Table(show_header=False, show_edge=False, expand=True)
-        table.add_column("*", no_wrap=True, overflow="ellipsis")
-        table.add_column("Title", no_wrap=True, overflow="ellipsis")
-        table.add_column("Artist", no_wrap=True, overflow="ellipsis")
-        table.add_column("Duration", no_wrap=True, overflow="ellipsis")
+        table.add_column("data", no_wrap=True, overflow="ellipsis")
+        if self.timingscls:
+            table.add_row(str(self.timingscls.elapsed).split(".")[0])
+            table.add_row(str(self.timingscls.remaining).split(".")[0])
+        else:
+            table.add_row("00:00:00")
+            table.add_row("00:00:00")
         panel = Panel(table, title="Schedule")
-        layout.update(panel)
-
-        rows = self._gen_rows()
-
-        # This would also get the height:
-        render_map = layout.render(console, options)
-        n_rows = render_map[layout].region.height - 2
-
-        while n_rows >= 0:
-            table = Table(show_header=False, show_edge=False, expand=True)
-            table.add_column("***", no_wrap=True, overflow="ellipsis")
-            table.add_column("Title", no_wrap=True, overflow="ellipsis")
-            table.add_column("Artist", no_wrap=True, overflow="ellipsis")
-            table.add_column("Duration", no_wrap=True, overflow="ellipsis")
-
-            for row in rows[-n_rows:]:
-                table.add_row(*row)
-
-            panel = Panel(table, title="Schedule")
-            layout.update(panel)
-
-            render_map = layout.render(console, options)
-
-            if len(render_map[layout].render[-1]) > 2:
-                # The table is overflowing
-                n_rows -= 1
-            else:
-                break
-
-        panel.height = render_map[layout].region.height
 
         return panel
 

@@ -62,6 +62,7 @@ def run_server(
         sched = Schedule(c, history)
         sched.generate_schedule()
         sched._prepare_live(0)
+        sched._schedule_prepared = True
         ui._schedule_renderable.schedulecls = sched
         server.sched = sched
     if c.timings_enabled:

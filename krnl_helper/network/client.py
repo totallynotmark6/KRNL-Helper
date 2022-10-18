@@ -47,6 +47,8 @@ class Client:
         self.thread = threading.Thread(target=self._run)
         self._logs = []
         self._schedule = []
+        self._elapsed_time = "n/a"
+        self._remaining_time = "n/a"
         self._current_time = 0
         self.thread.start()
 
@@ -63,7 +65,9 @@ class Client:
                     case "schedule":
                         self._schedule = decompressed_data["data"]
                     case "timings":
-                        self._current_time = decompressed_data["elapsed"]
+                        self._current_time = decompressed_data["current_time"]
+                        self._elapsed_time = decompressed_data["elapsed"]
+                        self._remaining_time = decompressed_data["remaining"]
                     case "exit":
                         self._exit = True
                     case "corrupt":
@@ -81,6 +85,12 @@ class Client:
 
     def get_schedule(self):
         return self._schedule
+
+    def get_elapsed_time(self):
+        return self._elapsed_time
+
+    def get_remaining_time(self):
+        return self._remaining_time
 
     def close(self):
         self._exit = True

@@ -19,7 +19,7 @@ class Timings:
         self.recording_ends = self.ends + timedelta(seconds=config.record_spacing)
         self._record = None
         self._schedule = None
-        self._schedule_prepared = False
+        self._schedule_prepared = True
 
     def add_schedule(self, schedule):
         if isinstance(schedule, Schedule):
@@ -56,6 +56,10 @@ class Timings:
     def elapsed(self):
         return datetime.now() - self.starts
 
+    @property
+    def remaining(self):
+        return self.ends - datetime.now()
+
     def tick(self):
         now = datetime.now()
         if self._record != None:
@@ -71,9 +75,11 @@ class Timings:
                     self._schedule_prepared = True
                     if self._schedulecls:
                         self._schedulecls._prepare_live(self.current_track()[0] if self.current_track()[0] else 0)
+                        get_logger().info("Prepared schedule!")
                 if self.current_track()[1]["title"] != "Live" and self._schedule_prepared:
                     self._schedule_prepared = False
                     if self._schedulecls:
+                        get_logger().info("PLAYING SCHEDULED CONTENT!")
                         self._schedulecls._play_live()
 
     @staticmethod
