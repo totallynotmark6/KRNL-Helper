@@ -5,6 +5,8 @@ from krnl_helper.config import Config
 from krnl_helper.console import console
 from krnl_helper.log import get_console_handler, get_logger
 from krnl_helper.ui.log_renderable import LogRenderable
+from krnl_helper.ui.schedule_renderable import ScheduleRenderable
+from krnl_helper.ui.timings_renderable import TimingsRenderable
 from krnl_helper.ui.weather_renderable import WeatherRenderable
 
 
@@ -14,8 +16,10 @@ class ConsoleUI:
         self._is_client = is_client
         self._client = client
         self._log_renderable = LogRenderable()
+        self._schedule_renderable = ScheduleRenderable()
         if config.weather_enabled:
             self._weather_renderable = WeatherRenderable(config)
+        self._timings_renderable = TimingsRenderable(config)
 
     def render_logs(self):
         layout = Layout()
@@ -40,7 +44,7 @@ class ConsoleUI:
         else:
             l["weather"].visible = False
         if self._config.music_enabled:
-            # l["schedule"].update(self._schedule_renderable)
+            l["schedule"].update(self._schedule_renderable)
             pass
         else:
             l["schedule"].visible = False
@@ -50,8 +54,12 @@ class ConsoleUI:
     def update_data(self):
         if self._is_client:
             self._log_renderable.logs = self._client.get_logs()
+            self._schedule_renderable.current_time = self._client.get_current_time()
+            self._schedule_renderable.schedule = self._client.get_schedule()
         else:
             self._log_renderable.logs = list(get_console_handler().get_messages())
+            self._schedule_renderable.current_time = self._timings_renderable.timingscls.elapsed
+            self._schedule_renderable.schedule = self._schedule_renderable.schedulecls.to_json()
 
     def __rich_console__(self, console, options):
         yield self.render()

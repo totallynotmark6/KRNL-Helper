@@ -8,7 +8,7 @@ from krnl_helper.config import Config
 
 class Record:
     def __init__(self, config: Config):
-        self.url = "http://localhost:8080"
+        self.url = "https://streaming.radio.co/s209f09ff1/listen"
         self.path = Path(config.record_path) / config.timings_start.strftime("%Y-%m-%d_%H-%M.mp3")
         self.starts_at = config.timings_start - timedelta(seconds=config.record_spacing)
         self.ends_at = config.timings_end + timedelta(seconds=config.record_spacing)
@@ -30,6 +30,12 @@ class Record:
     def is_running(self):
         return self._process.poll() is None
 
+    def is_recording(self):
+        return self.is_running()
+
     def stop(self):
-        self._process.terminate()
-        self._process.wait()
+        try:
+            self._process.terminate()
+            self._process.wait()
+        except AttributeError:
+            pass

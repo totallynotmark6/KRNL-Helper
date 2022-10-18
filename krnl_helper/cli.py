@@ -16,7 +16,7 @@ from krnl_helper.network import (
 from krnl_helper.network.client import Client
 from krnl_helper.network.server import Server
 from krnl_helper.recording import Record
-from krnl_helper.schedule import Schedule
+from krnl_helper.schedule import Schedule, Timings
 from krnl_helper.ui import ConsoleUI
 from krnl_helper.weather.base import Weather
 
@@ -56,17 +56,31 @@ def run_server(
         server = Server(c)
     if c.record_enabled:
         record = Record(c)
-    history = c.get_history()
-    sched = Schedule(c, history)
-    sched.generate_schedule()
     ui = ConsoleUI(c)
+    if c.music_enabled:
+        history = c.get_history()
+        sched = Schedule(c, history)
+        sched.generate_schedule()
+        ui._schedule_renderable.schedulecls = sched
+        server.sched = sched
+    if c.timings_enabled:
+        t = Timings(c)
+        if c.record_enabled:
+            t.add_recording(record)
+        if c.music_enabled:
+            t.add_schedule(sched)
+        server.timings = t
+        ui._timings_renderable.timingscls = t
     try:
         with Live(ui, console=console, screen=True):
             while True:
+                if c.timings_enabled:
+                    t.tick()
                 ui.update_data()
                 sleep(0.25)
     finally:
-        server.close()
+        if server:
+            server.close()
 
 
 @app.command()

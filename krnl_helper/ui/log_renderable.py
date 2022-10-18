@@ -11,7 +11,7 @@ class LogRenderable:
         self.logs = []
 
     def render(self, console, options):
-        layout = Layout()
+        layout = Layout(name="log")
 
         table = Table(show_header=False, show_edge=False, expand=True)
         table.add_column("Message", no_wrap=True, overflow="ellipsis")

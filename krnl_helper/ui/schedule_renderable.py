@@ -4,10 +4,24 @@ from rich.table import Table
 from rich.text import Text
 
 
-class TimingsRenderable:
-    def __init__(self, config):
+class ScheduleRenderable:
+    def __init__(self):
         self.schedule = []
         self.current_time = 0
+
+    def _gen_rows(self):
+        res = []
+        total_time = 0
+        for i in self.schedule:
+            if (
+                total_time < self.current_time.total_seconds()
+                and total_time + i["duration"] > self.current_time.total_seconds()
+            ):
+                res.append(("[blink]*[/blink]", i["title"], i["artist"], str(i["duration"])))
+            else:
+                res.append(("", i["title"], i["artist"], str(i["duration"])))
+            total_time += i["duration"]
+        return res
 
     def render(self, console, options):
         layout = Layout(name="schedule")

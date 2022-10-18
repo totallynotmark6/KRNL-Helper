@@ -1,5 +1,6 @@
 import itertools
 import random
+from datetime import date, datetime, time, timedelta
 
 from rich.progress import Progress
 
@@ -7,6 +8,79 @@ from krnl_helper.config import Config, History
 from krnl_helper.console import console
 from krnl_helper.log import get_logger
 from krnl_helper.music import LiveSegment, Playlist, Song
+from krnl_helper.recording import Record
+
+
+class Timings:
+    def __init__(self, config: Config):
+        self.starts = self._parse_time(config.timings_start)
+        self.ends = self._parse_time(config.timings_end)
+        self.recording_starts = self.starts - timedelta(seconds=config.record_spacing)
+        self.recording_ends = self.ends + timedelta(seconds=config.record_spacing)
+        self._record = None
+        self._schedule = None
+        self._schedule_prepared = False
+
+    def add_schedule(self, schedule):
+        if isinstance(schedule, Schedule):
+            self._schedule = schedule.to_json()
+            self._schedulecls = schedule
+        elif isinstance(schedule, list):
+            self._schedule = schedule
+
+    def add_recording(self, record):
+        if isinstance(record, Record):
+            self._record = record
+        elif isinstance(record, bool):
+            self._record = record
+
+    def is_recording(self):
+        return self._record.is_recording
+
+    def is_recording_padding(self):
+        now = datetime.now()
+        return self.recording_starts <= now <= self.recording_ends
+
+    def current_track(self):
+        if self._schedule:
+            if self.starts <= datetime.now() <= self.ends:
+                currently_elasped = datetime.now() - self.starts
+                elapsed = 0
+                for i, track in enumerate(self._schedule):
+                    elapsed += track["duration"]
+                    if currently_elasped.total_seconds() <= elapsed:
+                        return i, track
+        return None, None
+
+    @property
+    def elapsed(self):
+        return datetime.now() - self.starts
+
+    def tick(self):
+        now = datetime.now()
+        if self._record != None:
+            if self.recording_starts <= now <= self.recording_ends:
+                if isinstance(self._record, Record) and not self._record.is_recording:
+                    self._record.start()
+            else:
+                if isinstance(self._record, Record) and self._record.is_recording:
+                    self._record.stop()
+        if self._schedule:
+            if self.starts <= now <= self.ends:
+                if self.current_track()[1]["title"] == "Live" and not self._schedule_prepared:
+                    self._schedule_prepared = True
+                    if self._schedulecls:
+                        self._schedulecls._prepare_live(self.current_track()[0] if self.current_track()[0] else 0)
+                if self.current_track()[1]["title"] != "Live" and self._schedule_prepared:
+                    self._schedule_prepared = False
+                    if self._schedulecls:
+                        self._schedulecls._play_live()
+
+    @staticmethod
+    def _parse_time(time_str: str):
+        if isinstance(time_str, datetime):
+            return time_str
+        return datetime.combine(date.today(), time.strptime(time_str, "%H:%M"))
 
 
 class Schedule:
@@ -18,6 +92,23 @@ class Schedule:
             self.staging_playlist = Playlist.make_playlist("KRNL Temporary Playlist")
         self.source_playlist = Playlist.name_of("KRNL Radio")
         self.songs = []
+        self._current_song = -1
+
+    def _play_live(self):
+        self.staging_playlist.play()
+
+    def _prepare_live(self, index):
+        self.staging_playlist.clear_songs()
+        if self.songs[index].title == "Live":
+            currently_on = index + 1
+        else:
+            currently_on = index
+        while True:
+            if self.songs[currently_on].title == "Live":
+                break
+            else:
+                self.staging_playlist.add_songs(self.songs[currently_on])
+            currently_on += 1
 
     def _get_next_song(self):
         valid_songs = self.source_playlist.songs
@@ -39,6 +130,9 @@ class Schedule:
             ch = random.choice(actually_valid_songs)
         self.history.add(ch)
         return ch
+
+    def to_json(self):
+        return [song.to_json() for song in self.songs]
 
     def generate_schedule(self):
         START_WITH_SONG = True
@@ -87,6 +181,12 @@ class Schedule:
                         task, TOTAL_DURATION - sum(map(lambda song: song.duration.total_seconds(), self.songs))
                     )
             progress.update(task, completed=TOTAL_DURATION)
+
+    def tick(self):
+        self.staging_playlist
+
+    def current_time(self):
+        pass
 
 
 ## 1 ##

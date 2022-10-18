@@ -46,6 +46,8 @@ class Client:
         self.socket.sendall(json.dumps(self.wants).encode(NETWORK_TEXT_ENCODING))
         self.thread = threading.Thread(target=self._run)
         self._logs = []
+        self._schedule = []
+        self._current_time = 0
         self.thread.start()
 
     def _run(self):
@@ -58,6 +60,10 @@ class Client:
                     case "now_playing_file":
                         with open(Path.home() / "Documents" / "now_playing.txt", "w") as f:
                             f.write(decompressed_data["data"])
+                    case "schedule":
+                        self._schedule = decompressed_data["data"]
+                    case "timings":
+                        self._current_time = decompressed_data["elapsed"]
                     case "exit":
                         self._exit = True
                     case _:
@@ -71,6 +77,9 @@ class Client:
     def get_logs(self):
         return self._logs
 
+    def get_schedule(self):
+        return self._schedule
+
     def close(self):
         self._exit = True
         self.thread.join()
@@ -79,6 +88,9 @@ class Client:
     @property
     def should_exit(self):
         return self._exit
+
+    def get_current_time(self):
+        return self._current_time
 
     def __del__(self):
         self.close()

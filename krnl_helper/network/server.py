@@ -13,12 +13,14 @@ from krnl_helper.network import (
     ip_to_mnemonicode,
 )
 from krnl_helper.network.utils import network_compress
+from krnl_helper.schedule import Timings
 from krnl_helper.statics import NETWORK_MAX_SIZE, NETWORK_TEXT_ENCODING
 
 
 class Server:
     def __init__(self, config) -> None:
         self._exit = False
+        self.sched = None
         self._config = config
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         with console.status("Starting server...", spinner="dots12"):
@@ -79,6 +81,13 @@ class Server:
                                 to_send["data"] = tmpl.format(title=s.title, artist=s.artist)
                             except AttributeError:
                                 to_send["data"] = "Silence - The Void"
+                        case "schedule":
+                            if self.sched:
+                                to_send["data"] = self.sched.to_json()
+                            else:
+                                to_send["data"] = []
+                        case "timings":
+                            to_send["elapsed"] = self.timings.elapsed.total_seconds()
                         case _:
                             get_logger().warning(f"Unknown data type {data_type}!")
 
