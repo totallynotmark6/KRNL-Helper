@@ -89,7 +89,7 @@ class Server:
                         case "timings":
                             try:
                                 if self.timings:
-                                    to_send["current"] = self.timings.elapsed.total_seconds()
+                                    to_send["current_time"] = self.timings.elapsed.total_seconds()
                                     to_send["elapsed"] = str(self.timings.elapsed).split(".")[0]
                                     to_send["remaining"] = str(self.timings.remaining).split(".")[0]
                             except AttributeError:
