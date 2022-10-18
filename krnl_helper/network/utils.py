@@ -18,7 +18,11 @@ def network_compress(obj):
 
 
 def network_uncompress(data):
-    data = json.loads(data.decode(NETWORK_TEXT_ENCODING))
+    try:
+        data = json.loads(data.decode(NETWORK_TEXT_ENCODING))
+    except json.JSONDecodeError:
+        get_logger().warning("Invalid JSON data received!")
+        return {"type": "corrupt"}
     if data["compressed"]:
         decoded = base64.b85decode(data["data"])
         decompressed = bz2.decompress(decoded)

@@ -87,7 +87,11 @@ class Server:
                             else:
                                 to_send["data"] = []
                         case "timings":
-                            to_send["elapsed"] = self.timings.elapsed.total_seconds()
+                            try:
+                                if self.timings:
+                                    to_send["elapsed"] = self.timings.elapsed.total_seconds()
+                            except AttributeError:
+                                to_send["elapsed"] = -1.0
                         case _:
                             get_logger().warning(f"Unknown data type {data_type}!")
 

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rich.layout import Layout
 from rich.panel import Panel
 from rich.table import Table
@@ -13,13 +15,16 @@ class ScheduleRenderable:
         res = []
         total_time = 0
         for i in self.schedule:
-            if (
-                total_time < self.current_time.total_seconds()
-                and total_time + i["duration"] > self.current_time.total_seconds()
-            ):
-                res.append(("[blink]*[/blink]", i["title"], i["artist"], str(i["duration"])))
+            if isinstance(self.current_time, timedelta):
+                current_time = self.current_time.total_seconds()
             else:
-                res.append(("", i["title"], i["artist"], str(i["duration"])))
+                current_time = self.current_time
+            if total_time < current_time and total_time + i["duration"] > current_time:
+                res.append(
+                    ("[blink]*[/blink]", i["title"], i["artist"], str(timedelta(seconds=i["duration"])).split(".")[0])
+                )
+            else:
+                res.append(("", i["title"], i["artist"], str(timedelta(seconds=i["duration"])).split(".")[0]))
             total_time += i["duration"]
         return res
 

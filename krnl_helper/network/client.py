@@ -66,6 +66,8 @@ class Client:
                         self._current_time = decompressed_data["elapsed"]
                     case "exit":
                         self._exit = True
+                    case "corrupt":
+                        pass
                     case _:
                         print(decompressed_data)
             except socket.timeout:
