@@ -58,8 +58,8 @@ class ConsoleUI:
             self._log_renderable.logs = self._client.get_logs()
             self._schedule_renderable.current_time = self._client.get_current_time()
             self._schedule_renderable.schedule = self._client.get_schedule()
-            self._timings_renderable._c_elapsed = self._client.get_elapsed()
-            self._timings_renderable._c_remaining = self._client.get_remaining()
+            self._timings_renderable._c_elapsed = self._client.get_elapsed_time()
+            self._timings_renderable._c_remaining = self._client.get_remaining_time()
         else:
             self._log_renderable.logs = list(get_console_handler().get_messages())
             self._schedule_renderable.current_time = self._timings_renderable.timingscls.elapsed
