@@ -1,0 +1,18 @@
+{
+    "music": {
+        "enabled": false
+    },
+    "hold_music": {
+        "enabled": false
+    },
+    "weather": {
+        "enabled": false
+    },
+    "timings": {
+        "enabled": false
+    },
+    "record": {
+        "enabled": true,
+        "path": "./recordings"
+    }
+}

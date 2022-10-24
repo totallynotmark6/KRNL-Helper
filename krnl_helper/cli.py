@@ -1,59 +1,223 @@
-from datetime import datetime
+from pathlib import Path
+from time import sleep
 
-import requests
+import typer
+from rich.live import Live
+from rich.tree import Tree
 
-from krnl_helper.weather import get_weather
+from krnl_helper.config import Config, History
+from krnl_helper.log import get_logger, init_logger
+from krnl_helper.music import Playlist
+from krnl_helper.network import (
+    get_local_ip,
+    get_local_ip_mnemonicode,
+    ip_from_mnemonicode,
+)
+from krnl_helper.network.client import Client
+from krnl_helper.network.server import Server
+from krnl_helper.recording import Record
+from krnl_helper.schedule import Schedule, Timings
+from krnl_helper.ui import ConsoleUI
+from krnl_helper.weather.base import Weather
+
+from .console import console
+
+app = typer.Typer()
 
 
-def get_current_song():
-    resp = requests.get("https://public.radio.co/stations/s209f09ff1/status")
-    data = resp.json()
-    # there's some more useful data here, but this works for now
-    return data["current_track"]["title"]
+@app.command()
+def run_server(
+    config: Path = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to config file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        resolve_path=True,
+    ),
+    enable_server: bool = typer.Option(
+        None,
+        "--enable-server/--disable-server",
+        help="Enables or disables the server. The default relies on the config.",
+    ),
+    # enable_ui: bool = typer.Option(
+    #     True,
+    #     "--enable-ui/--disable-ui",
+    #     help="Enables or disables the UI."
+    # )
+):
+    c = Config.from_file(config)
+    init_logger()
+    logger = get_logger()
+    if enable_server or (enable_server == None and c.server_enabled):
+        server = Server(c)
+    if c.record_enabled:
+        record = Record(c)
+    ui = ConsoleUI(c)
+    if c.music_enabled:
+        history = c.get_history()
+        sched = Schedule(c, history)
+        sched.generate_schedule()
+        sched._prepare_live(0)
+        sched._schedule_prepared = True
+        ui._schedule_renderable.schedulecls = sched
+        server.sched = sched
+    if c.timings_enabled:
+        t = Timings(c)
+        if c.record_enabled:
+            t.add_recording(record)
+        if c.music_enabled:
+            t.add_schedule(sched)
+        server.timings = t
+        ui._timings_renderable.timingscls = t
+    try:
+        with Live(ui, console=console, screen=True):
+            while True:
+                if c.timings_enabled:
+                    t.tick()
+                ui.update_data()
+                sleep(0.25)
+    finally:
+        if server:
+            server.close()
 
 
-def get_time_until_end():
-    now = datetime.now()
-    end = datetime(now.year, now.month, now.day, 22, 0, 0)
-    return end - now
+@app.command()
+def run_client(
+    server: str = typer.Option(
+        None,
+        "--server",
+        "-s",
+        help="Server address",
+        prompt="Server address",
+    ),
+    server_port: int = typer.Option(
+        8080,
+        "--server-port",
+        "-p",
+        help="Server port",
+    ),
+    server_password: str = typer.Option(
+        None,
+        "--password",
+        help="Server password",
+        prompt="Server password",
+        hide_input=True,
+    ),
+    wait_for_server: bool = typer.Option(
+        False,
+        "--wait-for-server",
+        help="Wait for server to start",
+    ),
+    wants: list[str] = typer.Option(
+        [],
+        "--wants",
+        "-w",
+        help="What data to get from server",
+    ),
+):
+    client = Client(ip_from_mnemonicode(server), server_port, server_password, wait_for_server, wants)
+    config = Config().from_json(client.config)
+    if wants:
+        config.client_override(wants)
+    ui = ConsoleUI(config, True, client)
+    try:
+        with Live(ui, console=console, screen=True):
+            while not client.should_exit:
+                ui.update_data()
+                sleep(0.25)
+            # sleep(55)
+    finally:
+        client.close()
+
+
+@app.command()
+def debug_config(
+    config: Path = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to config file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        resolve_path=True,
+    )
+):
+    c = Config.from_file(config)
+    tree = Tree(config.name if config else "<Default>")
+    if c.music_enabled:
+        mus = tree.add("[green]Music[/green]")
+        mus.add(f"App: {c.music_app}")
+        mus.add(f"Playlist: {c.music_playlist}")
+        mus.add(f"Record to History: {c.music_record_to_history}")
+    else:
+        tree.add("[black]Music (disabled)[/black]")
+    if c.history_enabled:
+        hist = tree.add(f"[green]History[/green]")
+        hist.add(f"Path: {c.history_path}")
+        sched = hist.add("Scheduling")
+        sched.add(f"Restricted Sections: {c.history_scheduling_force_unique}")
+        sched.add(f"Last Resort Sections: {c.history_scheduling_attempt_unique}")
+    else:
+        tree.add("[black]History (disabled)[/black]")
+    if c.hold_music_enabled:
+        hol = tree.add("[green]Hold Music[/green]")
+        hol.add(f"App: {c.hold_music_app}")
+        hol.add(f"Song: {c.hold_music_song}")
+    else:
+        tree.add("[black]Hold Music (disabled)[/black]")
+    if c.weather_enabled:
+        wea = tree.add("[green]Weather[/green]")
+        wea.add(f"Service: {c.weather_service}")
+        wea.add(f"Location: {c.weather_location}")
+    else:
+        tree.add("[black]Weather (disabled)[/black]")
+    if c.timings_enabled:
+        tim = tree.add("[green]Timings[/green]")
+        tim.add(f"Duration: {c.timings_duration}")
+        tim.add(f"Start: {c.timings_start}")
+        tim.add(f"End: {c.timings_end}")
+    else:
+        tree.add("[black]Timings (disabled)[/black]")
+    if c.record_enabled:
+        rec = tree.add("[green]Record[/green]")
+        rec.add(f"Path: {c.record_path}")
+        rec.add(f"Spacing: {c.record_spacing}")
+    else:
+        tree.add("[black]Record (disabled)[/black]")
+    if c.server_enabled:
+        ser = tree.add("[green]Server[/green]")
+        ser.add(f"Code: {get_local_ip_mnemonicode()} ({get_local_ip()})")
+        ser.add(f"Port: {c.server_port}")
+        ser.add(f"Password: {c.server_password}")
+        ser.add(f"Client Data: {c.server_client_data}")
+    else:
+        tree.add("[black]Server (disabled)[/black]")
+    console.print(tree)
+
+
+@app.command()
+def test_command():
+    # with console.status("Attempting to run JXA..."):
+    #     _run_jxa("Application('Fork').quit()")
+    #     _run_jxa("app = Application('Finder'); app.includeStandardAdditions = true; app.displayAlert('hi!')")
+    # _run_applescript("tell application \"Spotify\" to play track \"spotify:track:6y0igZArWVi6Iz0rj35c1Y\"")
+    # ws = Weather.get_service("OpenMeteo")
+    # print(ws.get_current_est().temperature_2m.to("degF"))
+    # c = Config.from_file(Path("examples/krnl.json"))
+    # r = Record(c)
+    p = Playlist.name_of("KRNL Radio")
+    p.play()
 
 
 def cli():
-    # w / weather - Get the weather
-    # t / time - Get the time
-    # s / song - Gets the song and logs it to a file
-    # sl / songlist - Prints the song list
-    # c / clear - Clears the screen
-    # q / quit - Quits the program
-    print("Type 'help' for a list of commands.")
-    while True:
-        cmd = input("> ").lower()
-        if cmd in ["w", "weather"]:
-            print(get_weather())
-        elif cmd in ["t", "time"]:
-            print("Time until end: {}".format(get_time_until_end()))
-        elif cmd in ["s", "song"]:
-            current_song = get_current_song()
-            print("Current song: {}".format(current_song))
-            with open("songlist.txt", "a+") as f:
-                f.seek(0)  # go to the beginning of the file
-                if current_song not in f.read():
-                    # f.read() leaves the cursor at the end of the file, perfect for appending
-                    f.write(current_song + "\n")
-        elif cmd in ["sl", "songlist"]:
-            print("Song list:")
-            with open("songlist.txt", "r") as f:
-                print(f.read())
-        elif cmd in ["c", "clear"]:
-            print("\n" * 100)  # it's probably a hack, but it works.
-        elif cmd in ["q", "quit"]:
-            exit()
-        elif cmd in ["h", "help"]:
-            print("w / weather - Get the weather")
-            print("t / time - Get the time")
-            print("s / song - Gets the song and logs it to a file")
-            print("sl / songlist - Prints the song list")
-            print("c / clear - Clears the screen")
-            print("q / quit - Quits the program")
-        else:
-            print("Invalid command. Type 'help' for a list of commands.")
+    app()
+
+
+if __name__ == "__main__":
+    app()

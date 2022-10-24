@@ -1,0 +1,11 @@
+#!/usr/bin/env osascript -l JavaScript
+
+function run(argv) {
+    var tracks = Application("Music").playlists.byName(argv[0]).tracks()
+    var songs = []
+    for (var i = 0; i < tracks.length; i++) {
+        var track = tracks[i]
+        songs.push(track.properties())
+    }
+    return JSON.stringify(songs)
+}

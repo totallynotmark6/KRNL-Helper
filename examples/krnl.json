@@ -1,0 +1,46 @@
+{
+    "music": {
+        "enabled": true,
+        "app": "Apple Music",
+        "playlist": "KRNL Radio",
+        "record_to_history": true
+    },
+    "history": {
+        "enabled": true,
+        "scheduling_force_unique": 1,
+        "scheduling_attempt_unique": 5,
+        "path": "~/Music/krnl_history.json"
+    },
+    "hold_music": {
+        "enabled": true,
+        "app": "mpv",
+        "song": "~/Music/krnl_hold_music.mp3"
+    },
+    "weather": {
+        "enabled": true,
+        "service": "Open-Meteo",
+        "location": "Paris"
+    },
+    "timings": {
+        "enabled": true,
+        "duration": 3600,
+        "start": "21:00",
+        "end": "22:00"
+    },
+    "record": {
+        "enabled": true,
+        "path": "./recordings",
+        "spacing": 300
+    },
+    "server": {
+        "enabled": true,
+        "port": 8080,
+        "password": "",
+        "client_data": [
+            "log",
+            "timings",
+            "schedule",
+            "now_playing_file"
+        ]
+    }
+}

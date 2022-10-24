@@ -1,0 +1,24 @@
+#!/usr/bin/env osascript -l JavaScript
+
+function run(argv) {
+    mus = Application('Music')
+    playlists = mus.playlists()
+    for (i = 0; i < playlists.length; i++) {
+        if (playlists[i].name() == argv[0]) {
+            playlist = playlists[i]
+            // tracks = playlist.tracks()
+            for (j = 0; j < playlists.length; j++) {
+                // check the whole damn app
+                check = playlists[j]
+                tracks = check.tracks()
+                for (k = 0; k < tracks.length; k++) {
+                    if (tracks[k].persistentID() == argv[1]) {
+                        tracks[k].duplicate({to:playlist})
+                        return JSON.stringify({ 'status': 'success' })
+                    }
+                }
+            }
+        }
+    }
+    return JSON.stringify({ 'status': 'not found' })
+}
