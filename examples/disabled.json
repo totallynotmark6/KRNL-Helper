@@ -13,8 +13,5 @@
     },
     "timings": {
         "enabled": false
-    },
-    "server": {
-        "enabled": true
     }
 }

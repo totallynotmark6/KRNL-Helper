@@ -8,13 +8,6 @@ from rich.tree import Tree
 from krnl_helper.config import Config, History
 from krnl_helper.log import get_logger, init_logger
 from krnl_helper.music import Playlist
-from krnl_helper.network import (
-    get_local_ip,
-    get_local_ip_mnemonicode,
-    ip_from_mnemonicode,
-)
-from krnl_helper.network.client import Client
-from krnl_helper.network.server import Server
 from krnl_helper.recording import Record
 from krnl_helper.schedule import Schedule, Timings
 from krnl_helper.ui import ConsoleUI
@@ -52,8 +45,6 @@ def run_server(
     c = Config.from_file(config)
     init_logger()
     logger = get_logger()
-    if enable_server or (enable_server == None and c.server_enabled):
-        server = Server(c)
     if c.record_enabled:
         record = Record(c)
     ui = ConsoleUI(c)
@@ -64,14 +55,12 @@ def run_server(
         sched._prepare_live(0)
         sched._schedule_prepared = True
         ui._schedule_renderable.schedulecls = sched
-        server.sched = sched
     if c.timings_enabled:
         t = Timings(c)
         if c.record_enabled:
             t.add_recording(record)
         if c.music_enabled:
             t.add_schedule(sched)
-        server.timings = t
         ui._timings_renderable.timingscls = t
     try:
         with Live(ui, console=console, screen=True):
@@ -81,58 +70,7 @@ def run_server(
                 ui.update_data()
                 sleep(0.25)
     finally:
-        if server:
-            server.close()
-
-
-@app.command()
-def run_client(
-    server: str = typer.Option(
-        None,
-        "--server",
-        "-s",
-        help="Server address",
-        prompt="Server address",
-    ),
-    server_port: int = typer.Option(
-        8080,
-        "--server-port",
-        "-p",
-        help="Server port",
-    ),
-    server_password: str = typer.Option(
-        None,
-        "--password",
-        help="Server password",
-        prompt="Server password",
-        hide_input=True,
-    ),
-    wait_for_server: bool = typer.Option(
-        False,
-        "--wait-for-server",
-        help="Wait for server to start",
-    ),
-    wants: list[str] = typer.Option(
-        [],
-        "--wants",
-        "-w",
-        help="What data to get from server",
-    ),
-):
-    client = Client(ip_from_mnemonicode(server), server_port, server_password, wait_for_server, wants)
-    config = Config().from_json(client.config)
-    if wants:
-        config.client_override(wants)
-    ui = ConsoleUI(config, True, client)
-    try:
-        with Live(ui, console=console, screen=True):
-            while not client.should_exit:
-                ui.update_data()
-                sleep(0.25)
-            # sleep(55)
-    finally:
-        client.close()
-
+        pass
 
 @app.command()
 def debug_config(
@@ -190,14 +128,6 @@ def debug_config(
         rec.add(f"Spacing: {c.record_spacing}")
     else:
         tree.add("[black]Record (disabled)[/black]")
-    if c.server_enabled:
-        ser = tree.add("[green]Server[/green]")
-        ser.add(f"Code: {get_local_ip_mnemonicode()} ({get_local_ip()})")
-        ser.add(f"Port: {c.server_port}")
-        ser.add(f"Password: {c.server_password}")
-        ser.add(f"Client Data: {c.server_client_data}")
-    else:
-        tree.add("[black]Server (disabled)[/black]")
     console.print(tree)
 
 

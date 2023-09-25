@@ -188,22 +188,6 @@ class Config:
     def record_spacing(self):
         return self._config["record"]["spacing"]
 
-    @property
-    def server_enabled(self):
-        return self._config["server"]["enabled"]
-
-    @property
-    def server_port(self):
-        return self._config["server"]["port"]
-
-    @property
-    def server_password(self):
-        return self._config["server"]["password"]
-
-    @property
-    def server_client_data(self):
-        return self._config["server"]["client_data"]
-
     def to_json(self, indent=0):
         return json.dumps(self._config, indent=indent)
 

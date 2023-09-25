@@ -31,16 +31,5 @@
         "enabled": true,
         "path": "./recordings",
         "spacing": 300
-    },
-    "server": {
-        "enabled": true,
-        "port": 8080,
-        "password": "",
-        "client_data": [
-            "log",
-            "timings",
-            "schedule",
-            "now_playing_file"
-        ]
     }
 }
